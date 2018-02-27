@@ -10,10 +10,10 @@
  */
 
 import { h, VirtualNode } from '@phosphor/virtualdom';
-import { VirtualWidget, VirtualRenderer, SingleTextInputDialog, ConfirmDialog } from '@theia/core/lib/browser';
+import { VirtualWidget, VirtualRenderer, SingleTextInputDialog } from '@theia/core/lib/browser';
 import { SshKeyServer, SshKeyPair } from '../common/ssh-protocol';
 
-export abstract class SshKeyPairAbstractWidget extends VirtualWidget {
+export abstract class SshKeysAbstractWidget extends VirtualWidget {
 
     protected keyPairs: SshKeyPair[] = [];
 
@@ -40,18 +40,13 @@ export abstract class SshKeyPairAbstractWidget extends VirtualWidget {
     }
 
     protected renderCommandBar(): VirtualNode {
-        const dialog = new SingleTextInputDialog({
-            title: `New SSH key pair`,
-            initialValue: 'Remote host name/IP, e.g. github.com'
-        });
         const generateButton = h.button({
             className: 'theia-button',
             title: 'Generate new SSH key pair',
-            onclick: () => {
-                dialog.open().then(async name => {
-                    await this.sshKeyServer.generate(this.service, name);
-                    this.fetchKeys();
-                });
+            onclick: async () => {
+                const name = await this.getNewKeyPairName();
+                await this.sshKeyServer.generate(this.service, name);
+                this.fetchKeys();
             }
         }, 'Generate...');
         const uploadButton = h.button({
@@ -62,47 +57,43 @@ export abstract class SshKeyPairAbstractWidget extends VirtualWidget {
         return h.div({ className: 'buttons' }, generateButton, uploadButton);
     }
 
+    /**
+     * Returns name for new key pair, e.g. by asking user input.
+     */
+    protected abstract async getNewKeyPairName(): Promise<string>
+
     protected renderKeyList(): VirtualNode {
-        const theList: h.Child[] = [];
-        this.keyPairs.forEach(key => {
-            const container = this.renderKey(key);
-            theList.push(container);
+        const children = this.keyPairs.map(keyPair => {
+            return this.renderKey(keyPair)
         });
 
         return h.div({
             id: 'keyListContainer'
-        }, VirtualRenderer.flatten(theList));
+        }, VirtualRenderer.flatten(children));
     }
 
-    protected renderKey(key: SshKeyPair): VirtualNode {
+    protected renderKey(keyPair: SshKeyPair): VirtualNode {
         const name = h.div({
             className: 'keyName'
-        }, key.name);
+        }, keyPair.name);
 
+        const dialog = new SingleTextInputDialog({
+            title: `Public key of '${keyPair.name}'`,
+            initialValue: keyPair.publicKey
+        });
         const viewButton = h.button({
             className: 'theia-button',
             title: 'View public key',
-            onclick: async () => {
-                // TODO: show public key
-            }
+            onclick: () => dialog.open()
+            //this.commandService.executeCommand(CommonCommands.COPY.id)
         }, 'View');
-
-        const shouldDelete = async (): Promise<boolean> => {
-            const dialog = new ConfirmDialog({
-                title: 'Delete SSH key pair',
-                msg: `Do you really want to delete SSH keys for '${key.name}' host?`,
-                ok: 'Yes',
-                cancel: 'No'
-            });
-            return dialog.open();
-        };
 
         const deleteButton = h.button({
             className: 'theia-button',
             title: 'Delete key pair',
             onclick: async () => {
-                if (await shouldDelete()) {
-                    await this.sshKeyServer.delete(key.service, key.name);
+                if (await this.shouldDelete(keyPair)) {
+                    await this.sshKeyServer.delete(keyPair.service, keyPair.name);
                     this.fetchKeys();
                 }
             }
@@ -112,4 +103,10 @@ export abstract class SshKeyPairAbstractWidget extends VirtualWidget {
             className: 'sshItem'
         }, name, viewButton, deleteButton);
     }
+
+    /**
+     * Tests whether the given SSH key pair should be deleted.
+     * @param keyPair SSH key pair to delete
+     */
+    protected abstract shouldDelete(keyPair: SshKeyPair): Promise<boolean>
 }

@@ -10,17 +10,36 @@
  */
 
 import { ContainerModule } from 'inversify';
-import { WebSocketConnectionProvider } from '@theia/core/lib/browser';
-import { CommandContribution } from '@theia/core/lib/common';
-import { SshFrontendContribution } from './ssh-frontend-contribution';
+import { WebSocketConnectionProvider, WidgetFactory, KeybindingContribution, OpenHandler } from '@theia/core/lib/browser';
+import { CommandContribution, MenuContribution } from '@theia/core/lib/common';
+import { SshContribution } from './ssh-contribution';
+import { SshWidget, SSH_KEYS_WIDGET_FACTORY_ID } from './ssh-widget';
+import { SshPublicKeyWidgetFactory } from './ssh-public-key-widget-factory';
+import { SshPublicKeyOpenHandler } from './ssh-public-key-open-handler';
 import { SshKeyServer, sshKeyServicePath } from '../common/ssh-protocol';
 
 import '../../src/browser/style/index.css';
 
 export default new ContainerModule(bind => {
-    bind(CommandContribution).to(SshFrontendContribution).inSingletonScope();
     bind(SshKeyServer).toDynamicValue(ctx => {
         const provider = ctx.container.get(WebSocketConnectionProvider);
         return provider.createProxy<SshKeyServer>(sshKeyServicePath);
     }).inSingletonScope();
+
+    bind(SshContribution).toSelf().inSingletonScope();
+    bind(CommandContribution).toDynamicValue(context => context.container.get(SshContribution));
+    bind(KeybindingContribution).toDynamicValue(c => c.container.get(SshContribution));
+    bind(MenuContribution).toDynamicValue(c => c.container.get(SshContribution));
+
+    bind(SshWidget).toSelf();
+    bind(WidgetFactory).toDynamicValue(context => ({
+        id: SSH_KEYS_WIDGET_FACTORY_ID,
+        createWidget: () => context.container.get<SshWidget>(SshWidget)
+    }));
+
+    bind(SshPublicKeyWidgetFactory).toSelf().inSingletonScope();
+    bind(WidgetFactory).toDynamicValue(ctx => ctx.container.get(SshPublicKeyWidgetFactory)).inSingletonScope();
+
+    bind(SshPublicKeyOpenHandler).toSelf().inSingletonScope();
+    bind(OpenHandler).toDynamicValue(ctx => ctx.container.get(SshPublicKeyOpenHandler)).inSingletonScope();
 });

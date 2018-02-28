@@ -32,6 +32,17 @@ export class FakeSshKeyServer implements SshKeyServer {
         });
     }
 
+    create(service: string, name: string, publicKey: string): Promise<SshKeyPair> {
+        const keyPair = {
+            service: service,
+            name: name,
+            privateKey: 'private key content',
+            publicKey: publicKey
+        }
+        this.keyPairs.set(`${service}/${name}`, keyPair);
+        return Promise.resolve(keyPair);
+    }
+
     generate(service: string, name: string): Promise<SshKeyPair> {
         const keyPair = {
             service: service,

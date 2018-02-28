@@ -34,16 +34,17 @@
     width: 100%;
 }
 
+.theia-ssh .keyPairServiceItem {
+    font-size: var(--theia-ui-font-size1);
+    justify-content: space-between;
+}
+
 .theia-ssh .keyPairItem {
     margin: 1px 0 1px 3px;
     padding: 2px;
     font-size: var(--theia-ui-font-size1);
     display: flex;
     justify-content: space-between;
-}
-
-.theia-ssh .keyPairItem .file-icon {
-    display: initial;
 }
 
 .theia-ssh .keyPairItem:hover {

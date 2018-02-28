@@ -19,6 +19,8 @@ export interface SshKeyServer {
 
     generate(service: string, name: string): Promise<SshKeyPair>;
 
+    create(service: string, name: string, publicKey: string): Promise<SshKeyPair>;
+
     list(service: string, name?: string): Promise<SshKeyPair[]>;
 
     delete(service: string, name: string): Promise<void>;

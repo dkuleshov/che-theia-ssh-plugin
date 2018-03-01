@@ -9,14 +9,38 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
+import { Command, CommandRegistry } from '@theia/core';
 import { AbstractViewContribution } from '@theia/core/lib/browser';
+import { SshQuickOpenService } from './ssh-quick-open-service';
 import { SshWidget, SSH_KEYS_WIDGET_FACTORY_ID } from './ssh-widget';
+
+export const quickFileOpen: Command = {
+    id: 'file-search.openFile',
+    label: 'Open File ...'
+};
+
+export namespace SshCommands {
+    export const SSH_GENERATE: Command = {
+        id: 'ssh:generate',
+        label: 'SSH: generate key pair...'
+    };
+    export const SSH_CREATE: Command = {
+        id: 'ssh:create',
+        label: 'SSH: create key pair...'
+    };
+    export const SSH_DELETE: Command = {
+        id: 'ssh:delete',
+        label: 'SSH: delete key pair...'
+    };
+}
 
 @injectable()
 export class SshContribution extends AbstractViewContribution<SshWidget> {
 
-    constructor() {
+    constructor(
+        @inject(SshQuickOpenService) protected readonly sshQuickOpenService: SshQuickOpenService
+    ) {
         super({
             widgetId: SSH_KEYS_WIDGET_FACTORY_ID,
             widgetName: 'SSH',
@@ -25,6 +49,21 @@ export class SshContribution extends AbstractViewContribution<SshWidget> {
             },
             toggleCommandId: 'sshView:toggle',
             toggleKeybinding: 'ctrlcmd+shift+s'
+        });
+    }
+
+    registerCommands(commands: CommandRegistry): void {
+        commands.registerCommand(SshCommands.SSH_GENERATE, {
+            isEnabled: () => true,
+            execute: () => this.sshQuickOpenService.generateKeyPair()
+        });
+        commands.registerCommand(SshCommands.SSH_CREATE, {
+            isEnabled: () => true,
+            execute: () => this.sshQuickOpenService.createKeyPair()
+        });
+        commands.registerCommand(SshCommands.SSH_DELETE, {
+            isEnabled: () => true,
+            execute: () => this.sshQuickOpenService.deleteKeyPair()
         });
     }
 }

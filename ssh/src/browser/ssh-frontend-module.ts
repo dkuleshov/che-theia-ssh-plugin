@@ -19,6 +19,7 @@ import { SshPublicKeyOpenHandler } from './ssh-public-key-open-handler';
 import { SshKeyServer, sshKeyServicePath } from '../common/ssh-protocol';
 
 import '../../src/browser/style/index.css';
+import { SshQuickOpenService } from './ssh-quick-open-service';
 
 export default new ContainerModule(bind => {
     bind(SshKeyServer).toDynamicValue(ctx => {
@@ -42,4 +43,6 @@ export default new ContainerModule(bind => {
 
     bind(SshPublicKeyOpenHandler).toSelf().inSingletonScope();
     bind(OpenHandler).toDynamicValue(ctx => ctx.container.get(SshPublicKeyOpenHandler)).inSingletonScope();
+
+    bind(SshQuickOpenService).toSelf().inSingletonScope();
 });

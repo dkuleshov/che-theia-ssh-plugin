@@ -27,7 +27,8 @@
     "src"
   ],
   "dependencies": {
-    "@theia/core": "latest"
+    "@theia/core": "latest",
+    "@theia/git": "latest"
   },
   "devDependencies": {
     "rimraf": "latest",

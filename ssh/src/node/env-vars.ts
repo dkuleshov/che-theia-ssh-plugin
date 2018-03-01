@@ -8,7 +8,6 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-'use strict';
 
 import { injectable } from 'inversify';
 

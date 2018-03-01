@@ -28,7 +28,7 @@ export abstract class SshKeyPairAbstractWidget extends VirtualWidget {
     }
 
     protected async fetchKeys() {
-        const keyPairs = await this.sshKeyServer.list(this.service, undefined);
+        const keyPairs = await this.sshKeyServer.getAll(this.service);
         this.keyPairs = [...keyPairs];
         this.update();
     }

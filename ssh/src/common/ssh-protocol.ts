@@ -19,7 +19,11 @@ export interface SshKeyServer {
 
     generate(service: string, name: string): Promise<SshKeyPair>;
 
-    list(service: string, name?: string): Promise<SshKeyPair[]>;
+    create(sshKeyPair: SshKeyPair): Promise<void>;
+
+    get(service: string, name: string): Promise<SshKeyPair>;
+
+    getAll(service: string): Promise<SshKeyPair[]>;
 
     delete(service: string, name: string): Promise<void>;
 }

@@ -11,11 +11,16 @@
 
 import { ContainerModule } from 'inversify';
 import { JsonRpcConnectionHandler, ConnectionHandler } from '@theia/core/lib/common';
-import { FakeSshKeyServer } from './fake-ssh-key-server';
+import { SshKeyServerImpl } from './ssh-key-server';
 import { SshKeyServer, sshKeyServicePath } from '../common/ssh-protocol';
+import { SshKeyManager, RemoteSshKeyManager } from "./ssh-key-manager";
+import { SshKeyServiceClient, SshKeyServiceHttpClient } from "./ssh-key-service-client";
 
 export default new ContainerModule(bind => {
-    bind(SshKeyServer).to(FakeSshKeyServer).inSingletonScope();
+    bind(SshKeyServer).to(SshKeyServerImpl).inSingletonScope();
+    bind(SshKeyManager).to(RemoteSshKeyManager).inSingletonScope();
+    bind(SshKeyServiceClient).to(SshKeyServiceHttpClient).inSingletonScope();
+
     bind(ConnectionHandler).toDynamicValue(ctx =>
         new JsonRpcConnectionHandler(sshKeyServicePath, () =>
             ctx.container.get(SshKeyServer)

@@ -9,9 +9,9 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { AxiosInstance, default as axios } from 'axios';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { SshKeyPair } from '../common/ssh-protocol';
+import { WsMasterHttpClient } from "./ws-master-http-client";
 
 export const SshKeyServiceClient = Symbol("SshKeyServiceClient");
 
@@ -82,7 +82,7 @@ export interface SshKeyServiceClient {
 }
 
 /**
- * Data class for storing result of successful {@link SshKeyServiceClient}'s
+ * Data class to store the result of a successful {@link SshKeyServiceClient}'s
  * response data.
  */
 export class Success<T extends SshKeyPair | SshKeyPair[] | void> {
@@ -95,7 +95,7 @@ export class Success<T extends SshKeyPair | SshKeyPair[] | void> {
 }
 
 /**
- * Data class for storing result of unsuccessful {@link SshKeyServiceClient}'s
+ * Data class to store the result of an unsuccessful {@link SshKeyServiceClient}'s
  * response message.
  */
 export class Failure {
@@ -109,20 +109,13 @@ export class Failure {
 
 /**
  * HTTP based implementation of {@link SshKeyServiceClient}. In fact it is a
- * plain wrapper around {@link AxiosInstance} library that does SSH service
- * specific REST calls and process responses correspondingly (in accordance
- * to their HTTP statuses).
- *
- * @see <a href=https://github.com/axios/axios>axios</a>
+ * plain wrapper around {@link WsMasterHttpClient} library that does SSH
+ * service specific REST calls and process responses correspondingly (in
+ * accordance to their HTTP statuses).
  */
 @injectable()
 export class SshKeyServiceHttpClient implements SshKeyServiceClient {
-    readonly httpClient: AxiosInstance;
-
-    constructor() {
-        this.httpClient = axios.create({
-            baseURL: 'http://localhost:8080/api'
-        });
+    constructor(@inject(WsMasterHttpClient) protected readonly wsMasterHttpClient: WsMasterHttpClient) {
     }
 
     /**
@@ -130,12 +123,13 @@ export class SshKeyServiceHttpClient implements SshKeyServiceClient {
      */
     generate(service: string, name: string): Promise<Failure | Success<SshKeyPair>> {
         return new Promise<Failure | Success<SshKeyPair>>((resolve, reject) => {
-            this.httpClient
-                .post("/ssh/generate", { service, name })
+            this.wsMasterHttpClient
+                .post<SshKeyPair>("/ssh/generate", { service, name })
                 .then(response => {
                     switch (response.status) {
                         case 201: {
-                            resolve(new Success(response.data));
+                            let data = response.data;
+                            resolve(new Success(data));
                             break;
                         }
                         case 400: {
@@ -165,7 +159,7 @@ export class SshKeyServiceHttpClient implements SshKeyServiceClient {
      */
     create(sshKeyPair: SshKeyPair): Promise<Failure | Success<void>> {
         return new Promise<Failure | Success<void>>((resolve, reject) => {
-            this.httpClient
+            this.wsMasterHttpClient
                 .post("/ssh", { sshKeyPair })
                 .then(response => {
                     switch (response.status) {
@@ -200,8 +194,8 @@ export class SshKeyServiceHttpClient implements SshKeyServiceClient {
      */
     getAll(service: string): Promise<Failure | Success<SshKeyPair[]>> {
         return new Promise<Failure | Success<SshKeyPair[]>>((resolve, reject) => {
-            this.httpClient
-                .get(`/ssh/${service}`)
+            this.wsMasterHttpClient
+                .get<SshKeyPair[]>(`/ssh/${service}`)
                 .then(response => {
                     switch (response.status) {
                         case 200: {
@@ -227,8 +221,8 @@ export class SshKeyServiceHttpClient implements SshKeyServiceClient {
      */
     get(service: string, name: string): Promise<Failure | Success<SshKeyPair>> {
         return new Promise<Failure | Success<SshKeyPair>>((resolve, reject) => {
-            this.httpClient
-                .get(`/ssh/${service}/find?name=${name}`)
+            this.wsMasterHttpClient
+                .get<SshKeyPair>(`/ssh/${service}/find?name=${name}`)
                 .then(response => {
                     switch (response.status) {
                         case 200: {
@@ -258,7 +252,7 @@ export class SshKeyServiceHttpClient implements SshKeyServiceClient {
      */
     delete(service: string, name: string): Promise<Failure | Success<void>> {
         return new Promise<Failure | Success<void>>((resolve, reject) => {
-            this.httpClient.delete(`/ssh/${service}?name=${name}`)
+            this.wsMasterHttpClient.delete(`/ssh/${service}?name=${name}`)
                 .then(response => {
                     switch (response.status) {
                         case 204: {

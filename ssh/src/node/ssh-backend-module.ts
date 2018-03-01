@@ -15,8 +15,14 @@ import { SshKeyServerImpl } from './ssh-key-server';
 import { SshKeyServer, sshKeyServicePath } from '../common/ssh-protocol';
 import { SshKeyManager, RemoteSshKeyManager } from "./ssh-key-manager";
 import { SshKeyServiceClient, SshKeyServiceHttpClient } from "./ssh-key-service-client";
+import { EnvVars } from "./env-vars";
+import { WsMasterHttpClient } from "./ws-master-http-client";
+
 
 export default new ContainerModule(bind => {
+    bind(EnvVars).toSelf();
+    bind(WsMasterHttpClient).toSelf();
+
     bind(SshKeyServer).to(SshKeyServerImpl).inSingletonScope();
     bind(SshKeyManager).to(RemoteSshKeyManager).inSingletonScope();
     bind(SshKeyServiceClient).to(SshKeyServiceHttpClient).inSingletonScope();

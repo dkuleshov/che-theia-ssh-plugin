@@ -13,28 +13,46 @@ import { inject, injectable } from 'inversify';
 import { SshKeyPair, SshKeyServer } from '../common/ssh-protocol';
 import { SshKeyManager } from "./ssh-key-manager";
 
+/**
+ * Server implementation of SSH key pair API
+ */
 @injectable()
 export class SshKeyServerImpl implements SshKeyServer {
 
     constructor(@inject(SshKeyManager) protected readonly sshKeyManager: SshKeyManager) {
     }
 
+    /**
+     * @inheritDoc
+     */
     generate(service: string, name: string): Promise<SshKeyPair> {
         return this.sshKeyManager.generate(service, name);
     }
 
+    /**
+     * @inheritDoc
+     */
     create(sshKeyPair: SshKeyPair): Promise<void> {
         return this.sshKeyManager.create(sshKeyPair);
     }
 
+    /**
+     * @inheritDoc
+     */
     get(service: string, name: string): Promise<SshKeyPair> {
         return this.sshKeyManager.get(service, name);
     }
 
+    /**
+     * @inheritDoc
+     */
     getAll(service: string): Promise<SshKeyPair[]> {
         return this.sshKeyManager.getAll(service);
     }
 
+    /**
+     * @inheritDoc
+     */
     delete(service: string, name: string): Promise<void> {
         return this.sshKeyManager.delete(service, name);
     }

@@ -28,7 +28,7 @@
   ],
   "dependencies": {
     "@theia/core": "latest",
-    "axios": "latest"
+    "axios": "0.17.1"
   },
   "devDependencies": {
     "rimraf": "latest",

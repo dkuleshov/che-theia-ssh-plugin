@@ -18,9 +18,9 @@ export const SshKeyManager = Symbol("SshKeyManager");
 /**
  * Simple SSH key pairs manager that performs basic operations like create,
  * get, delete, etc. There is no restriction on the way the keys are obtained -
- * remotely (via REST or JSON-RPC, ), locally, ,
- * or stored, so the implementation of the interface defines the mechanism that
- * is done.
+ * remotely (via REST or JSON-RPC, ) or locally (e.g. dynamically generated
+ * and/or in-memory stored), so the implementation of the interface defines
+ * the mechanism that is used.
  */
 export interface SshKeyManager {
 
